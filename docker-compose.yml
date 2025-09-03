@@ -1,0 +1,58 @@
+services:
+  postgres:
+    container_name: shroom-postgres
+    build: ./postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  shroom-webserver:
+    container_name: shroom-webserver
+    build: ./shroom-webserver
+    restart: always
+    ports:
+      - 5000:5000
+    environment:
+      SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
+      SHROOM_DB_USER: ${POSTGRES_DB_USER}
+      PGPASSWORD: ${PGPASSWORD}
+      SHROOM_TABLE_NAME: ${POSTGRES_TABLE_NAME}
+      WEBSERVER_PORT: ${WEBSERVER_PORT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+  shroom-mkproject:
+    build: ./shroomin-mkproject
+    environment:
+      SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
+      SHROOM_DB_USER: ${POSTGRES_DB_USER}
+      PGPASSWORD: ${PGPASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+#Optional but provides automated checking with NelS's sizecheck program
+  shroom-checker:
+    container_name: shroom-checker
+    build: ./checker
+    restart: always
+    environment:
+      SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
+      SHROOM_DB_USER: ${POSTGRES_DB_USER}
+      PGPASSWORD: ${PGPASSWORD}
+      SHROOM_TABLE_NAME: ${POSTGRES_TABLE_NAME}
+      SHROOM_CHECKER_THREADS: ${CHECKER_THREADS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+#Optional
+  shroom-grafana:
+    container_name: shroom-grafana
+    image: grafana/grafana-enterprise
+    restart: unless-stopped
+    ports:
+    - 3000:3000
