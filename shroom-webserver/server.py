@@ -144,11 +144,11 @@ async def authenticate(api_key: string):
 
 @app.get("/sb_leaderboard")
 async def small_biomes_lb(request: Request):
-    return get_lb(True)
+    return await get_lb(True)
 
 @app.get("/lb_leaderboard")
 async def large_biomes_lb(request: Request):
-    return get_lb(False)
+    return await get_lb(False)
 
 async def get_lb(small_biomes: bool):
     conn = get_db_connection()
@@ -232,11 +232,11 @@ async def receive_register(payload: UserEntry, request: Request):
 
 @app.post("/small_biomes")
 async def small_biomes(payload: Payload, request: Request):
-    await receive_payload(payload, request, True)
+    return await receive_payload(payload, request, True)
 
 @app.post("/large_biomes")
 async def large_biomes(payload: Payload, request: Request):
-    await receive_payload(payload, request, False)
+    return await receive_payload(payload, request, False)
 
 async def receive_payload(payload: Payload, request: Request, small_biomes: bool):
     if(small_biomes):
