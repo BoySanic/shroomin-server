@@ -1,3 +1,6 @@
+networks:
+  traefik-network:
+
 volumes:
   pgdata:
   webdata:
