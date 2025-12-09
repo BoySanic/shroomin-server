@@ -8,7 +8,11 @@ SEEDS_FILE = "output.txt"
 SERVER_URL = "https://shroomweb.0xa.pw"  # Change to your server URL
 POLL_INTERVAL = 5  # seconds between checks
 API_KEY = sys.argv[1]
-
+SMALL_BIOMES = sys.argv[2]
+if(SMALL_BIOMES == "sb"):
+    SERVER_URL += "/small_biomes"
+else:
+    SERVER_URL += "/large_biomes"
 header = {
     'api-key': API_KEY
 }
@@ -50,7 +54,7 @@ def main():
                     try:
                         response = requests.post(
                             SERVER_URL,
-                            headers=header
+                            headers=header,
                             json=payload,
                             timeout=10
                         )

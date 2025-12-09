@@ -49,7 +49,7 @@ def encode_payload(payload):
 
 def assemble_jwt(enc_header, enc_payload, priv_key):
     message = (enc_header + "." + enc_payload).encode("utf-8")
-    
+
     hash = SHA256.new(message)
     signer = DSS.new(priv_key, 'deterministic-rfc6979')
     signature = signer.sign(hash)
@@ -76,7 +76,7 @@ async def lifespan(app: FastAPI):
 # FastAPI App
 app = FastAPI(lifespan=lifespan)
 logger = logging.getLogger("server")
-    
+
 # Pydantic Models
 
 class UserEntry(BaseModel):
@@ -146,13 +146,13 @@ async def authenticate(api_key: string):
 async def receive_register(payload: UserEntry, request: Request):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
+
     if "api-key" not in request.headers:
         raise HTTPException(
             status_code=400,
             detail=f"API Key not provided",
         )
-    if authenticate() == 13:
+    if await authenticate() == 13:
         cur.execute(
             f"""
             SELECT id FROM users
@@ -216,7 +216,7 @@ async def receive_payload(payload: Payload, request: Request, small_biomes: bool
             detail=f"API Key not provided",
         )
     api_key = request.headers['api-key']
-    user_id = authenticate(api_key)
+    user_id = await authenticate(api_key)
     try:
         for entry in payload.data:
             # 1. Check for exact match

@@ -1,5 +1,6 @@
 networks:
   traefik-network:
+    external: true
 
 volumes:
   pgdata:
@@ -11,6 +12,8 @@ services:
     build: ./postgres
     restart: always
     shm_size: 128mb
+    networks:
+      - traefik-network
     environment:
       POSTGRES_PASSWORD: ${PGPASSWORD}
     volumes:
@@ -36,6 +39,8 @@ services:
     volumes:
       - webdata:/server
       - ./shroom-webserver/server.py:/server/server.py
+    networks:
+      - traefik-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,7 +104,7 @@ services:
       SHROOM_BOT_DISCORD_TOKEN: ${SHROOM_BOT_DISCORD_TOKEN}
       SHROOM_BOT_API_KEY: ${SHROOM_BOT_API_KEY}
   traefik:
-    image: "traefik:v3.3"
+    image: "traefik:v3.6.4"
     container_name: "shroom_traefik"
     command:
       - "--log.level=DEBUG"
