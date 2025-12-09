@@ -7,6 +7,7 @@ import requests
 import time
 import os
 
+
 class MyClient(discord.Client):
     async def on_ready(self):
         print(f"Logged on as {self.user}!")
@@ -19,6 +20,36 @@ user_shroom_running = []
 shroom_api_key = os.getenv("SHROOM_BOT_API_KEY")
 shroom_discord_token = os.getenv("SHROOM_BOT_DISCORD_TOKEN")
 
+@tree.command(
+    name="leaderboard"
+    description="Mushroom island leaderboard command"
+    guild=discord.Object(id=720723932738486323)
+)
+async def leaderboard(
+    interaction: discord.Interaction,
+    count: int = 10,
+    largebiomes: bool = False
+):
+    await interaction.response.defer(thinking=True)
+    endpoint = "https://shroomweb.0xa.pw/sb_leaderboard"
+    if largebiomes:
+        endpoint = "https://shroomweb.0xa.pw/lb_leaderboard"
+    limit = count
+    if limit > 20:
+        limit = 20
+
+    params = {
+        'count': limit
+    }
+    response = requests.get(endpoint, params, timeout=10)
+    message = "@silent\n```Position, User, Seed, Claimed_size, calculated_size, result_id\n"
+    if(response.status_code == 200):
+        json_response = json.loads(response)
+        for x in range(1, limit):
+            message += f"{x}: <@{json_response['discord_id']}>, {json_response['seed']}, {json_response['claimed_size']}, {json_response['calculated_size']}, {json_response['result_id']}\n"
+        interaction.response.send_message(message)
+    else:
+        interaction.response.send_message("Zoinks scoob! That one didn't work.", ephemeral=True)
 @tree.command(
     name="register",
     description="Register your discord account for shroomin",
