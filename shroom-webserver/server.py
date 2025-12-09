@@ -142,6 +142,41 @@ async def authenticate(api_key: string):
             )
     return int(user_id[0])
 
+@app.get("/sb_leaderboard")
+async def small_biomes_lb(request: Request):
+    return get_lb(True)
+
+@app.get("/lb_leaderboard")
+async def large_biomes_lb(request: Request):
+    return get_lb(False)
+
+async def get_lb(small_biomes: bool):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    table_name = "small_biomes" if small_biomes else "large_biomes"
+
+    cur.execute(
+        f"""
+            SELECT u.discord_id, seed, claimed_size, calculated_size, id from %s mush
+            JOIN users u on u.id = mush.user_id
+            ORDER BY mush.claimed_size
+            GROUP BY u.discord_id
+            LIMIT 10
+        """, (table_name,))
+    message = {}
+    results = cur.fetchall()
+    place = 1
+    for result in results:
+        message[place] = {
+            "discord_id": result[0],
+            "seed": result[1],
+            "claimed_size": result[2],
+            "calculated_size": result[3],
+            "result_id": result[4]
+        }
+        place += 1
+    return message
+
 @app.post("/register")
 async def receive_register(payload: UserEntry, request: Request):
     conn = get_db_connection()
@@ -230,11 +265,8 @@ async def receive_payload(payload: Payload, request: Request, small_biomes: bool
             exact_match = cur.fetchone()
 
             if exact_match:
-                # Exact match found → reject
-                raise HTTPException(
-                    status_code=409,
-                    detail=f"Exact match already exists for seed {entry.seed}",
-                )
+                # Exact match found -> reject
+                continue
 
             # 2. Check for seed-only match
             cur.execute(
