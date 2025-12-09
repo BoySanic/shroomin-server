@@ -42,7 +42,7 @@ services:
       # Match incoming requests on a specific hostname
       - "traefik.http.routers.shroomweb.rule=Host(`shroomweb.${ROOT_DOMAIN}`)"
       # Assign the router to a named Traefik service
-      - "traefik.http.routers.shroomweb.service=sabnzbd"
+      - "traefik.http.routers.shroomweb.service=shroomweb"
       # Use the 'websecure' (HTTPS) entry point
       - "traefik.http.routers.shroomweb.entrypoints=websecure"
       # Define the internal container port for routing
