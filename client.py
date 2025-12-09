@@ -1,12 +1,17 @@
 import time
 import json
 import requests
+import sys
 
 # Configuration
 SEEDS_FILE = "output.txt"
-SERVER_URL = "http://example.com:5000/endpoint"  # Change to your server URL
+SERVER_URL = "https://shroomweb.0xa.pw"  # Change to your server URL
 POLL_INTERVAL = 5  # seconds between checks
+API_KEY = sys.argv[1]
 
+header = {
+    'api-key': API_KEY
+}
 def parse_line(line):
     """Parse a line into a dictionary with seed, x, z, claimed_size."""
     parts = line.strip().split()
@@ -45,6 +50,7 @@ def main():
                     try:
                         response = requests.post(
                             SERVER_URL,
+                            headers=header
                             json=payload,
                             timeout=10
                         )
