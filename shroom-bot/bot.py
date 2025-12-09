@@ -30,7 +30,6 @@ async def leaderboard(
     count: int = 10,
     largebiomes: bool = False
 ):
-    await interaction.response.defer(thinking=True)
     endpoint = "https://shroomweb.0xa.pw/sb_leaderboard"
     if largebiomes:
         endpoint = "https://shroomweb.0xa.pw/lb_leaderboard"
@@ -47,9 +46,9 @@ async def leaderboard(
         json_response = json.loads(response)
         for x in range(1, limit):
             message += f"{x}: <@{json_response['discord_id']}>, {json_response['seed']}, {json_response['claimed_size']}, {json_response['calculated_size']}, {json_response['result_id']}\n"
-        interaction.followup.send(message)
+        await interaction.response.send_message(message)
     else:
-        interaction.followup.send("Zoinks scoob! That one didn't work.", ephemeral=True)
+        await interaction.response.send_message("Zoinks scoob! That one didn't work.")
 @tree.command(
     name="register",
     description="Register your discord account for shroomin",
