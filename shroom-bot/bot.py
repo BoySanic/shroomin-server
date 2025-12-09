@@ -47,9 +47,9 @@ async def leaderboard(
         json_response = json.loads(response)
         for x in range(1, limit):
             message += f"{x}: <@{json_response['discord_id']}>, {json_response['seed']}, {json_response['claimed_size']}, {json_response['calculated_size']}, {json_response['result_id']}\n"
-        interaction.response.send_message(message)
+        interaction.followup.send(message)
     else:
-        interaction.response.send_message("Zoinks scoob! That one didn't work.", ephemeral=True)
+        interaction.followup.send("Zoinks scoob! That one didn't work.", ephemeral=True)
 @tree.command(
     name="register",
     description="Register your discord account for shroomin",
