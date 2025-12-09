@@ -93,5 +93,5 @@ services:
   shroom-bot:
     build: ./shroom-bot
     environment:
-    SHROOM_BOT_DISCORD_TOKEN: ${SHROOM_BOT_DISCORD_TOKEN}
-    SHROOM_BOT_API_KEY: ${SHROOM_BOT_API_KEY}
+      SHROOM_BOT_DISCORD_TOKEN: ${SHROOM_BOT_DISCORD_TOKEN}
+      SHROOM_BOT_API_KEY: ${SHROOM_BOT_API_KEY}
