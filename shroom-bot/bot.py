@@ -21,8 +21,8 @@ shroom_api_key = os.getenv("SHROOM_BOT_API_KEY")
 shroom_discord_token = os.getenv("SHROOM_BOT_DISCORD_TOKEN")
 
 @tree.command(
-    name="leaderboard"
-    description="Mushroom island leaderboard command"
+    name="leaderboard",
+    description="Mushroom island leaderboard command",
     guild=discord.Object(id=720723932738486323)
 )
 async def leaderboard(
