@@ -1,3 +1,7 @@
+volumes:
+  pgdata:
+  webdata:
+
 services:
   postgres:
     container_name: shroom-postgres
@@ -6,6 +10,8 @@ services:
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: ${PGPASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -21,8 +27,12 @@ services:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
       PGPASSWORD: ${PGPASSWORD}
-      SHROOM_TABLE_NAME: ${POSTGRES_TABLE_NAME}
+      SHROOM_SB_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
+      SHROOM_LB_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
       WEBSERVER_PORT: ${WEBSERVER_PORT}
+    volumes:
+      - webdata:/server
+      - ./shroom-webserver/server.py:/server/server.py
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,7 +54,8 @@ services:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
       PGPASSWORD: ${PGPASSWORD}
-      SHROOM_TABLE_NAME: ${POSTGRES_TABLE_NAME}
+      SHROOM_SB_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
+      SHROOM_LB_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
       SHROOM_CHECKER_THREADS: ${CHECKER_THREADS}
     depends_on:
       postgres:

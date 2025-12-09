@@ -11,7 +11,7 @@ RUN mkdir /server
 
 WORKDIR /server
 
-RUN pip install --no-cache-dir  --break-system-packages fastapi uvicorn psycopg2-binary
+RUN pip install --no-cache-dir  --break-system-packages fastapi uvicorn psycopg2-binary pycryptodome cryptography
 RUN chown shroom:shroom -R /server
 COPY /server.py /server
-CMD uvicorn server:app --reload --host 0.0.0.0 --port ${WEBSERVER_PORT}
+CMD uvicorn server:app --host 0.0.0.0 --port ${WEBSERVER_PORT}
