@@ -34,7 +34,7 @@ async def register(
         "api-key": shroom_api_key
     }
     response = requests.post(
-        "http://shroom-webserver:5000/register",
+        "https://shroomweb.0xa.pw/register",
         headers=headers,
         json=data,
         timeout=10
