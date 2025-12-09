@@ -36,6 +36,29 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    labels:
+      # Enable Traefik for this container
+      - "traefik.enable=true"
+      # Match incoming requests on a specific hostname
+      - "traefik.http.routers.shroomweb.rule=Host(`shroomweb.${ROOT_DOMAIN}`)"
+      # Assign the router to a named Traefik service
+      - "traefik.http.routers.shroomweb.service=sabnzbd"
+      # Use the 'websecure' (HTTPS) entry point
+      - "traefik.http.routers.shroomweb.entrypoints=websecure"
+      # Define the internal container port for routing
+      - "traefik.http.services.shroomweb.loadbalancer.server.port=5000"
+      # Enable TLS on this router
+      - "traefik.http.routers.shroomweb.tls=true"
+      # Use Let's Encrypt for certificate management
+      - "traefik.http.routers.shroomweb.tls.certresolver=letsencrypt"
+      # Pass the original Host header to the container
+      - "traefik.http.services.shroomweb.loadbalancer.passhostheader=true"
+      # Apply a compression middleware
+      - "traefik.http.routers.shroomweb.middlewares=compresstraefik"
+      # Define settings for the compression middleware
+      - "traefik.http.middlewares.compresstraefik.compress=true"
+      # Specify which Docker network Traefik should use for routing
+      - "traefik.docker.network=traefik-network"
   shroom-mkproject:
     build: ./shroomin-mkproject
     environment:
@@ -67,3 +90,8 @@ services:
     restart: unless-stopped
     ports:
     - 3000:3000
+  shroom-bot:
+    build: ./shroom-bot
+    environment:
+    SHROOM_BOT_DISCORD_TOKEN: ${SHROOM_BOT_DISCORD_TOKEN}
+    SHROOM_BOT_API_KEY: ${SHROOM_BOT_API_KEY}

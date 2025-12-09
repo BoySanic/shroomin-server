@@ -113,63 +113,10 @@ async def load_or_generate_key():
     app.state.key = key
 # API Endpoint
 
-@app.post("/register")
-async def receive_register(payload: UserEntry, request: Request):
+async def authenticate(api_key: string):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
-    cur.execute(
-        f"""
-        SELECT id FROM users
-        WHERE discord_id = %s
-        """, (payload.discord_id,)
-    )
-    user_id = cur.fetchone()
-    if not user_id:
-        try:
-            print(app.state.key.public_key().export_key(format="PEM"))
-            encoded_header = encode_headers(get_jwt_headers())
-            created_at = datetime.now(tz=timezone.utc)
-            payload_rebuilt = f"{payload.discord_id}.{created_at.timestamp()}"
-            encoded_payload = encode_payload(payload_rebuilt)
-            full_token = assemble_jwt(encoded_header, encoded_payload, app.state.key)
-
-            print(f"Inserting id {payload.discord_id} and created_at {created_at}")
-            cur.execute(
-                f"""
-                INSERT INTO users (discord_id, created_at) values
-                (%s, %s)
-                """, (payload.discord_id, created_at)
-            )
-            conn.commit()
-            return {"status": "success", "message": full_token}
-        except Exception as e:
-            print(f"Encountered an error: {e}")
-
-        finally:
-            cur.close()
-            conn.close()
-    else:
-        return {"status": "invalid", "message": "user already exists"}
-
-@app.post("/small_biomes")
-async def small_biomes(payload: Payload, request: Request):
-    await receive_payload(payload, request, True)
-
-@app.post("/large_biomes")
-async def large_biomes(payload: Payload, request: Request):
-    await receive_payload(payload, request, False)
-
-async def receive_payload(payload: Payload, request: Request, small_biomes: bool):
-    if(small_biomes):
-        TABLE_NAME = os.getenv("SHROOM_SB_TABLE_NAME")
-    else:
-        TABLE_NAME = os.getenv("SHROOM_LB_TABLE_NAME")
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    api_key = request.headers['api-key']
     encoded_header, encoded_payload, encoded_signature = api_key.split(".")
-    print(f"decode value: {base64.urlsafe_b64decode(encoded_payload).decode("utf-8")}")
     discord_id, created_at = base64.urlsafe_b64decode(encoded_payload).decode("utf-8").removeprefix('"').removesuffix('"').split(".", 1)
 
     padding_correction = "=" * ((4 - len(encoded_signature) % 4) % 4)
@@ -193,7 +140,83 @@ async def receive_payload(payload: Payload, request: Request, small_biomes: bool
                 status_code=401,
                 detail=f"Invalid API Key provided",
             )
+    return int(user_id[0])
 
+@app.post("/register")
+async def receive_register(payload: UserEntry, request: Request):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    if "api-key" not in request.headers:
+        raise HTTPException(
+            status_code=400,
+            detail=f"API Key not provided",
+        )
+    if authenticate() == 13:
+        cur.execute(
+            f"""
+            SELECT id FROM users
+            WHERE discord_id = %s
+            """, (payload.discord_id,)
+        )
+        user_id = cur.fetchone()
+        if not user_id:
+            try:
+                print(app.state.key.public_key().export_key(format="PEM"))
+                encoded_header = encode_headers(get_jwt_headers())
+                created_at = datetime.now(tz=timezone.utc)
+                payload_rebuilt = f"{payload.discord_id}.{created_at.timestamp()}"
+                encoded_payload = encode_payload(payload_rebuilt)
+                full_token = assemble_jwt(encoded_header, encoded_payload, app.state.key)
+
+                print(f"Inserting id {payload.discord_id} and created_at {created_at}")
+                cur.execute(
+                    f"""
+                    INSERT INTO users (discord_id, created_at) values
+                    (%s, %s)
+                    """, (payload.discord_id, created_at)
+                )
+                conn.commit()
+                return full_token
+            except Exception as e:
+                print(f"Encountered an error: {e}")
+
+            finally:
+                cur.close()
+                conn.close()
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"User already exists",
+            )
+    else:
+        raise HTTPException(
+                status_code=401,
+                detail=f"Unauthorized",
+            )
+
+@app.post("/small_biomes")
+async def small_biomes(payload: Payload, request: Request):
+    await receive_payload(payload, request, True)
+
+@app.post("/large_biomes")
+async def large_biomes(payload: Payload, request: Request):
+    await receive_payload(payload, request, False)
+
+async def receive_payload(payload: Payload, request: Request, small_biomes: bool):
+    if(small_biomes):
+        TABLE_NAME = os.getenv("SHROOM_SB_TABLE_NAME")
+    else:
+        TABLE_NAME = os.getenv("SHROOM_LB_TABLE_NAME")
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if "api-key" not in request.headers:
+        raise HTTPException(
+            status_code=400,
+            detail=f"API Key not provided",
+        )
+    api_key = request.headers['api-key']
+    user_id = authenticate(api_key)
     try:
         for entry in payload.data:
             # 1. Check for exact match
@@ -231,7 +254,7 @@ async def receive_payload(payload: Payload, request: Request, small_biomes: bool
                     VALUES (%s, %s, %s, %s, 0, %s)
                     RETURNING id
                     """,
-                    (entry.seed, entry.x, entry.z, entry.claimed_size, user_id[0]),
+                    (entry.seed, entry.x, entry.z, entry.claimed_size, user_id),
                 )
                 conn.commit()
                 continue
@@ -243,7 +266,7 @@ async def receive_payload(payload: Payload, request: Request, small_biomes: bool
                 VALUES (%s, %s, %s, %s, 0, %s)
                 RETURNING id
                 """,
-                (entry.seed, entry.x, entry.z, entry.claimed_size, user_id[0]),
+                (entry.seed, entry.x, entry.z, entry.claimed_size, user_id),
             )
             conn.commit()
 
