@@ -143,17 +143,20 @@ async def authenticate(api_key: string):
     return int(user_id[0])
 
 @app.get("/sb_leaderboard")
-async def small_biomes_lb(request: Request):
-    return await get_lb(True)
+async def small_biomes_lb(count: int, request: Request):
+    return await get_lb(count, True)
 
 @app.get("/lb_leaderboard")
-async def large_biomes_lb(request: Request):
-    return await get_lb(False)
+async def large_biomes_lb(count: int, request: Request):
+    return await get_lb(count, False)
 
-async def get_lb(small_biomes: bool):
+async def get_lb(count: int, small_biomes: bool):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     table_name = "small_biomes" if small_biomes else "large_biomes"
+    limit = count
+    if limit > 1000 :
+        limit = 1000
 
     cur.execute(
         f"""
@@ -161,7 +164,7 @@ async def get_lb(small_biomes: bool):
             JOIN users u on u.id = mush.user_id
             GROUP BY u.discord_id, seed, claimed_size, calculated_size, mush.id
             ORDER BY mush.claimed_size DESC
-            LIMIT 10
+            LIMIT {limit}
         """)
     message = {}
     results = cur.fetchall()
