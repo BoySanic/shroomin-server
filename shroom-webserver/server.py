@@ -147,12 +147,12 @@ async def receive_register(payload: UserEntry, request: Request):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    if "api-key" not in request.headers:
+    if "api-key" not in request.headers:    
         raise HTTPException(
             status_code=400,
             detail=f"API Key not provided",
         )
-    if await authenticate() == 13:
+    if await authenticate(request.headers['api-key']) == 13:
         cur.execute(
             f"""
             SELECT id FROM users
