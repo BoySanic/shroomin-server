@@ -157,10 +157,10 @@ async def get_lb(small_biomes: bool):
 
     cur.execute(
         f"""
-            SELECT u.discord_id, seed, claimed_size, calculated_size, id from {table_name} mush
+            SELECT u.discord_id, seed, claimed_size, calculated_size, mush.id from {table_name} mush
             JOIN users u on u.id = mush.user_id
-            ORDER BY mush.claimed_size
-            GROUP BY u.discord_id
+            GROUP BY u.discord_id, seed, claimed_size, calculated_size, mush.id
+            ORDER BY mush.claimed_size DESC
             LIMIT 10
         """)
     message = {}
