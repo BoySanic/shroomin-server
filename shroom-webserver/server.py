@@ -157,7 +157,7 @@ async def get_lb(small_biomes: bool):
 
     cur.execute(
         f"""
-            SELECT u.discord_id, seed, claimed_size, calculated_size, mush.id from {table_name} mush
+            SELECT u.discord_id, x, z, seed, claimed_size, calculated_size, mush.id from {table_name} mush
             JOIN users u on u.id = mush.user_id
             GROUP BY u.discord_id, seed, claimed_size, calculated_size, mush.id
             ORDER BY mush.claimed_size DESC
@@ -169,10 +169,12 @@ async def get_lb(small_biomes: bool):
     for result in results:
         message[place] = {
             "discord_id": result[0],
-            "seed": result[1],
-            "claimed_size": result[2],
-            "calculated_size": result[3],
-            "result_id": result[4]
+            "x": result[1],
+            "z": result[2],
+            "seed": result[3],
+            "claimed_size": result[4],
+            "calculated_size": result[5],
+            "result_id": result[6]
         }
         place += 1
     return message
