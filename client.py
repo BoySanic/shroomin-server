@@ -33,14 +33,15 @@ def parse_line(line):
 
 def main():
     last_position = 0
-
+    print("Starting shroomin' client...")
     while True:
         try:
+            print("Opening file...")
             with open(SEEDS_FILE, "r") as f:
                 f.seek(last_position)
                 new_lines = f.readlines()
                 last_position = f.tell()
-
+            print(f"File opened. {len(new_lines)} entries.")
             if new_lines:
 
                 parsed_data = []
@@ -48,7 +49,7 @@ def main():
                     parsed = parse_line(line)
                     if parsed:
                         parsed_data.append(parsed)
-                    if len(parsed_data) == 10000:
+                    if len(parsed_data) == 10000 or len(new_lines) < 10000:
                         payload = {"data": parsed_data}
                         print("Sending payload:", json.dumps(payload, indent=2))
                         try:
