@@ -42,26 +42,26 @@ def main():
                 last_position = f.tell()
 
             if new_lines:
+
                 parsed_data = []
                 for line in new_lines:
                     parsed = parse_line(line)
                     if parsed:
                         parsed_data.append(parsed)
-
-                if parsed_data:
-                    payload = {"data": parsed_data}
-                    print("Sending payload:", json.dumps(payload, indent=2))
-                    try:
-                        response = requests.post(
-                            SERVER_URL,
-                            headers=header,
-                            json=payload,
-                            timeout=10
-                        )
-                        print("Server response:", response.status_code, response.text)
-                    except requests.RequestException as e:
-                        print("Error sending data:", e)
-
+                    if len(parsed_data) == 10000:
+                        payload = {"data": parsed_data}
+                        print("Sending payload:", json.dumps(payload, indent=2))
+                        try:
+                            response = requests.post(
+                                SERVER_URL,
+                                headers=header,
+                                json=payload,
+                                timeout=10
+                            )
+                            print("Server response:", response.status_code, response.text)
+                        except requests.RequestException as e:
+                            print("Error sending data:", e)
+                        parsed_data = []
         except FileNotFoundError:
             print(f"File {SEEDS_FILE} not found. Waiting...")
         
