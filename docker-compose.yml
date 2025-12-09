@@ -88,6 +88,8 @@ services:
       SHROOM_SB_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
       SHROOM_LB_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
       SHROOM_CHECKER_THREADS: ${CHECKER_THREADS}
+    networks:
+      - traefik-network
     depends_on:
       postgres:
         condition: service_healthy

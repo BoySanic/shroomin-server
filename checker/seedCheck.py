@@ -19,14 +19,14 @@ logging.basicConfig(
 # Database Configuration
 
 DB_CONFIG = {
-    "dbname": os.getenv("SHROOM_DB_NAME"),      
+    "dbname": os.getenv("SHROOM_DB_NAME"),
     "user": os.getenv("SHROOM_DB_USER"),
     "password": os.getenv("PGPASSWORD"),
     "host": "postgres",         # service name if running in docker-compose
     "port": 5432,
 }
 
-TABLE_NAME = os.getenv("SHROOM_TABLE_NAME")
+TABLE_NAME = os.getenv("SHROOM_SB_TABLE_NAME")
 SEEDCHECK_BIN = "/checker/sizeCheck"  # path to your binary
 POLL_INTERVAL = 10  # seconds between DB checks
 MAX_WORKERS = os.getenv("SHROOM_CHECKER_THREADS")     # number of parallel workers
@@ -128,7 +128,7 @@ def main():
         try:
             # Fetch rows that need processing
             cur.execute(
-                f"SELECT id, seed, x, z FROM {TABLE_NAME} WHERE calculated_size IS NULL AND manual_check_needed = 0;"
+                f"SELECT id, seed, x, z FROM {TABLE_NAME} WHERE calculated_size IS NULL AND (manual_check_needed = 0 or manual_check_needed is null);"
             )
             rows = cur.fetchall()
 
@@ -140,7 +140,7 @@ def main():
             logging.info(f"Found {len(rows)} rows to process. Dispatching...")
 
             # Process rows in parallel
-            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            with ThreadPoolExecutor(max_workers=int(MAX_WORKERS)) as executor:
                 futures = {executor.submit(process_row, row): row for row in rows}
                 for future in as_completed(futures):
                     row = futures[future]
@@ -149,10 +149,6 @@ def main():
                         logging.info(f"Finished processing row {row_id}")
                     except Exception as e:
                         logging.error(f"Error processing row {row['id']}: {e}")
-
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            time.sleep(POLL_INTERVAL)
 
         finally:
             cur.close()
