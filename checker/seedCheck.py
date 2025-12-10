@@ -26,7 +26,7 @@ DB_CONFIG = {
     "port": 5432,
 }
 
-TABLE_NAME = os.getenv("SHROOM_SB_TABLE_NAME")
+TABLE_NAME = os.getenv("SHROOM_TABLE_NAME")
 SEEDCHECK_BIN = "/checker/sizeCheck"  # path to your binary
 POLL_INTERVAL = 10  # seconds between DB checks
 MAX_WORKERS = os.getenv("SHROOM_CHECKER_THREADS")     # number of parallel workers
@@ -92,6 +92,17 @@ def process_row(row):
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
     try:
+        cur.execute(
+            f"SELECT claimed_size FROM {TABLE_NAME} where id = {row_id}"
+        )
+        claimed_size = cur.fetchone()[0]
+        if claimed_size/area > 1.05 or claimed_size/area > 0.95:
+            # Invalidate if the gap is too wide
+            cur.execute(
+                f"UPDATE {TABLE_NAME} SET manual_check_needed = 1 WHERE id = {row_id}"
+            )
+            conn.commit()
+            logging.info(f"Invalidated row {row_id} due to gap between claimed and calculated. Claimed: {claimed_size} calced: {area}")
         if manual_needed:
             cur.execute(
                 f"UPDATE {TABLE_NAME} SET manual_check_needed = 1 WHERE id = %s",
@@ -128,7 +139,7 @@ def main():
         try:
             # Fetch rows that need processing
             cur.execute(
-                f"SELECT id, seed, x, z FROM {TABLE_NAME} WHERE calculated_size IS NULL AND (manual_check_needed = 0 or manual_check_needed is null);"
+                f"SELECT id, seed, x, z FROM {TABLE_NAME} WHERE calculated_size IS NULL AND (manual_check_needed = 0 or manual_check_needed is null); ORDER BY CLAIMED_SIZE DESC"
             )
             rows = cur.fetchall()
 
