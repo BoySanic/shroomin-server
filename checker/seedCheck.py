@@ -86,8 +86,8 @@ def process_row(row):
     """Process a single DB row: run seedCheck, update DB, insert log."""
     row_id, seed, x, z = row["id"], row["seed"], row["x"], row["z"]
     logging.info(f"Processing row {row_id} (seed={seed}, x={x}, z={z})")
-
-    area, elapsed, manual_needed = run_seedcheck(seed, x, z, largebiomes=False)
+    lb = TABLE_NAME == "large_biomes"
+    area, elapsed, manual_needed = run_seedcheck(seed, x, z, lb)
 
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
