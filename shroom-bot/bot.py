@@ -47,7 +47,7 @@ async def leaderboard(
         for x in range(1, limit+1):
             message += f"{x}: <@{json_response[str(x)]['discord_id']}> `{json_response[str(x)]['seed']}, {json_response[str(x)]['claimed_size']}, {json_response[str(x)]['calculated_size']}, {json_response[str(x)]['result_id']}`\n"
         message += "\n"
-        await interaction.response.send_message(message, flags=discord.MessageFlags.suppress_notifications)
+        await interaction.response.send_message(message, silent=True)
     else:
         await interaction.response.send_message("Zoinks scoob! That one didn't work.")
 @tree.command(
