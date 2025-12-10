@@ -45,7 +45,7 @@ async def leaderboard(
     if(response.status_code == 200):
         json_response = json.loads(response.content)
         for x in range(1, limit):
-            message += f"{x}: <@{json_response['discord_id']}>, {json_response['seed']}, {json_response['claimed_size']}, {json_response['calculated_size']}, {json_response['result_id']}\n"
+            message += f"{x}: <@{json_response[x]['discord_id']}>, {json_response[x]['seed']}, {json_response[x]['claimed_size']}, {json_response[x]['calculated_size']}, {json_response[x]['result_id']}\n"
         await interaction.response.send_message(message)
     else:
         await interaction.response.send_message("Zoinks scoob! That one didn't work.")
