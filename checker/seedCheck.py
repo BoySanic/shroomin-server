@@ -139,7 +139,7 @@ def main():
         try:
             # Fetch rows that need processing
             cur.execute(
-                f"SELECT id, seed, x, z FROM {TABLE_NAME} WHERE calculated_size IS NULL AND (manual_check_needed = 0 or manual_check_needed is null); ORDER BY CLAIMED_SIZE DESC"
+                f"SELECT id, seed, x, z FROM {TABLE_NAME} WHERE calculated_size IS NULL AND (manual_check_needed = 0 or manual_check_needed is null) ORDER BY CLAIMED_SIZE DESC"
             )
             rows = cur.fetchall()
 
