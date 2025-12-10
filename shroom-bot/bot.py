@@ -41,11 +41,12 @@ async def leaderboard(
         'count': limit
     }
     response = requests.get(endpoint, params, timeout=10)
-    message = "@silent\n```Position, User, Seed, Claimed_size, calculated_size, result_id\n"
+    message = "@silent\n`Position, User, Seed, Claimed_size, calculated_size, result_id`\n"
     if(response.status_code == 200):
         json_response = json.loads(response.content)
-        for x in range(1, limit):
-            message += f"{x}: <@{json_response[str(x)]['discord_id']}>, {json_response[str(x)]['seed']}, {json_response[str(x)]['claimed_size']}, {json_response[str(x)]['calculated_size']}, {json_response[str(x)]['result_id']}\n"
+        for x in range(1, limit+1):
+            message += f"{x}: <@{json_response[str(x)]['discord_id']}> `{json_response[str(x)]['seed']}, {json_response[str(x)]['claimed_size']}, {json_response[str(x)]['calculated_size']}, {json_response[str(x)]['result_id']}`\n"
+        message += "\n"
         await interaction.response.send_message(message)
     else:
         await interaction.response.send_message("Zoinks scoob! That one didn't work.")
