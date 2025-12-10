@@ -162,6 +162,7 @@ async def get_lb(count: int, small_biomes: bool):
         f"""
             SELECT u.discord_id, x, z, seed, claimed_size, calculated_size, mush.id from {table_name} mush
             JOIN users u on u.id = mush.user_id
+            WHERE calculated_size is not null
             GROUP BY u.discord_id, seed, claimed_size, calculated_size, mush.id
             ORDER BY mush.calculated_size DESC, mush.claimed_size DESC
             LIMIT {limit}
