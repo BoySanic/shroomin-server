@@ -97,9 +97,35 @@ services:
   shroom-grafana:
     container_name: shroom-grafana
     image: grafana/grafana-enterprise
+    networks:
+      - traefik-network
     restart: unless-stopped
     ports:
     - 3000:3000
+    labels:
+    # Enable Traefik for this container
+    - "traefik.enable=true"
+    # Match incoming requests on a specific hostname
+    - "traefik.http.routers.shroom-grafana.rule=Host(`grafana.shroom.${ROOT_DOMAIN}`)"
+    # Assign the router to a named Traefik service
+    - "traefik.http.routers.shroom-grafana.service=shroom-grafana"
+    # Use the 'websecure' (HTTPS) entry point
+    - "traefik.http.routers.shroom-grafana.entrypoints=websecure"
+    # Define the internal container port for routing
+    - "traefik.http.services.shroom-grafana.loadbalancer.server.port=3000"
+    # Enable TLS on this router
+    - "traefik.http.routers.shroom-grafana.tls=true"
+    # Use Let's Encrypt for certificate management
+    - "traefik.http.routers.shroom-grafana.tls.certresolver=letsencrypt"
+    # Pass the original Host header to the container
+    - "traefik.http.services.shroom-grafana.loadbalancer.passhostheader=true"
+    # Apply a compression middleware
+    - "traefik.http.routers.shroom-grafana.middlewares=compresstraefik"
+    # Define settings for the compression middleware
+    - "traefik.http.middlewares.compresstraefik.compress=true"
+    # Specify which Docker network Traefik should use for routing
+    - "traefik.docker.network=traefik-network"
+
   shroom-bot:
     build: ./shroom-bot
     environment:
