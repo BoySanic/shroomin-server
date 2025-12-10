@@ -78,8 +78,8 @@ services:
       postgres:
         condition: service_healthy
 #Optional but provides automated checking with NelS's sizecheck program
-  shroom-sb-checker:
-    container_name: shroom-checker
+  shroom-checker-sb:
+    container_name: shroom-checker-sb
     build: ./checker
     restart: always
     environment:
@@ -94,7 +94,7 @@ services:
       postgres:
         condition: service_healthy
   shroom-lb-checker:
-    container_name: shroom-checker
+    container_name: shroom-checker-lb
     build: ./checker
     restart: always
     environment:
