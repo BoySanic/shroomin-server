@@ -3,8 +3,9 @@ networks:
     external: true
 
 volumes:
-  pgdata:
-  webdata:
+  pgdata: {}
+  webdata: {}
+  grafana-storage: {}
 
 services:
   postgres:
@@ -77,7 +78,7 @@ services:
       postgres:
         condition: service_healthy
 #Optional but provides automated checking with NelS's sizecheck program
-  shroom-checker:
+  shroom-sb-checker:
     container_name: shroom-checker
     build: ./checker
     restart: always
@@ -85,9 +86,23 @@ services:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
       PGPASSWORD: ${PGPASSWORD}
-      SHROOM_SB_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
-      SHROOM_LB_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
-      SHROOM_CHECKER_THREADS: ${CHECKER_THREADS}
+      SHROOM_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
+      SHROOM_CHECKER_THREADS: 6
+    networks:
+      - traefik-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+  shroom-lb-checker:
+    container_name: shroom-checker
+    build: ./checker
+    restart: always
+    environment:
+      SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
+      SHROOM_DB_USER: ${POSTGRES_DB_USER}
+      PGPASSWORD: ${PGPASSWORD}
+      SHROOM_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
+      SHROOM_CHECKER_THREADS: 6
     networks:
       - traefik-network
     depends_on:
@@ -97,6 +112,8 @@ services:
   shroom-grafana:
     container_name: shroom-grafana
     image: grafana/grafana-enterprise
+    volumes:
+      - grafana-storage:/var/lib/grafana
     networks:
       - traefik-network
     restart: unless-stopped
@@ -106,21 +123,21 @@ services:
     # Enable Traefik for this container
     - "traefik.enable=true"
     # Match incoming requests on a specific hostname
-    - "traefik.http.routers.shroom-grafana.rule=Host(`grafana.shroom.${ROOT_DOMAIN}`)"
+    - "traefik.http.routers.shroomgrafana.rule=Host(`grafana.shroom.${ROOT_DOMAIN}`)"
     # Assign the router to a named Traefik service
-    - "traefik.http.routers.shroom-grafana.service=shroom-grafana"
+    - "traefik.http.routers.shroomgrafana.service=shroomgrafana"
     # Use the 'websecure' (HTTPS) entry point
-    - "traefik.http.routers.shroom-grafana.entrypoints=websecure"
+    - "traefik.http.routers.shroomgrafana.entrypoints=websecure"
     # Define the internal container port for routing
-    - "traefik.http.services.shroom-grafana.loadbalancer.server.port=3000"
+    - "traefik.http.services.shroomgrafana.loadbalancer.server.port=3000"
     # Enable TLS on this router
-    - "traefik.http.routers.shroom-grafana.tls=true"
+    - "traefik.http.routers.shroomgrafana.tls=true"
     # Use Let's Encrypt for certificate management
-    - "traefik.http.routers.shroom-grafana.tls.certresolver=letsencrypt"
+    - "traefik.http.routers.shroomgrafana.tls.certresolver=letsencrypt"
     # Pass the original Host header to the container
-    - "traefik.http.services.shroom-grafana.loadbalancer.passhostheader=true"
+    - "traefik.http.services.shroomgrafana.loadbalancer.passhostheader=true"
     # Apply a compression middleware
-    - "traefik.http.routers.shroom-grafana.middlewares=compresstraefik"
+    - "traefik.http.routers.shroomgrafana.middlewares=compresstraefik"
     # Define settings for the compression middleware
     - "traefik.http.middlewares.compresstraefik.compress=true"
     # Specify which Docker network Traefik should use for routing
