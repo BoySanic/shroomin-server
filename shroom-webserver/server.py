@@ -79,6 +79,16 @@ logger = logging.getLogger("server")
 
 # Pydantic Models
 
+class ResultEntry(BaseModel):
+    result_id: int
+    calculated_size: int
+    valid: bool
+    small_biomes: bool
+    min_x: int
+    min_z: int
+    max_x: int
+    max_z: int
+
 class UserEntry(BaseModel):
     discord_id: int
 
@@ -141,6 +151,58 @@ async def authenticate(api_key: string):
                 detail=f"Invalid API Key provided",
             )
     return int(user_id[0])
+@app.get("/validate")
+async def validate(payload: ResultEntry, request: Request):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    table_name = "small_biomes" if payload.small_biomes else "large_biomes"
+
+@app.get("/profile")
+async def profile(payload: UserEntry, request: Request):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(
+        f"""
+        SELECT sum(calculated_size) FROM small_biomes sm
+        JOIN users u on u.id = sm.user_id
+        WHERE u.id = {payload.discord_id}
+        """
+    )
+    small_biomes_total = cur.fetchone()[0]
+    cur.execute(
+        f"""
+        SELECT sum(calculated_size) FROM large_biomes lb
+        JOIN users u on u.id = lb.user_id
+        WHERE u.id = {payload.discord_id}
+        """
+    )
+    large_biomes_total = cur.fetchone()[0]
+    cur.execute(
+        f"""
+        SELECT count(*) FROM small_biomes sm
+        JOIN users u on u.id = sm.user_id
+        WHERE u.id = {payload.discord_id}
+        AND calculated_size is not null
+        """
+    )
+    small_biomes_count = cur.fetchone()[0]
+    cur.execute(
+        f"""
+        SELECT count(*) FROM small_biomes sm
+        JOIN users u on u.id = sm.user_id
+        WHERE u.id = {payload.discord_id}
+        AND calculated_size is not null
+        """
+    )
+    large_biomes_count = cur.fetchone()[0]
+    return {
+        "discord_id": payload.discord_id,
+        "sb_score": small_biomes_total,
+        "sb_count": small_biomes_count,
+        "lb_score": large_biomes_total,
+        "lb_count": large_biomes_count
+    }
 
 @app.get("/sb_leaderboard")
 async def small_biomes_lb(count: int, request: Request):
