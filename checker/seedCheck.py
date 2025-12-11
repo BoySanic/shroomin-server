@@ -107,6 +107,7 @@ def process_row(row):
         cur.execute(
             f"SELECT id FROM {TABLE_NAME} where seed = {seed} and min_x <= {x_min} and max_x >= {x_max} and min_z <= {z_min} and max_z >= {z_max}"
         )
+        conflicting_id = None
         if cur.rowcount > 0:
             conflicting_id = cur.fetchone()[0]
         cur.execute(
