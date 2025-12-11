@@ -14,7 +14,11 @@ CREATE TABLE small_biomes (
   duplicate_seed_flag INT,
   manual_check_needed INT,
   user_id INT NOT NULL,
-  created_at timestamptz NOT NULL default now()
+  created_at timestamptz NOT NULL default now(),
+  min_x INT default NULL,
+  min_z INT default NULL,
+  max_x INT default NULL,
+  max_z INT default NULL
 );
 
 CREATE TABLE large_biomes (
@@ -27,5 +31,9 @@ CREATE TABLE large_biomes (
   duplicate_seed_flag INT,
   manual_check_needed INT,
   user_id INT NOT NULL,
-  created_at timestamptz NOT NULL default now()
+  created_at timestamptz NOT NULL default now(),
+  min_x INT default NULL,
+  min_z INT default NULL,
+  max_x INT default NULL,
+  max_z INT default NULL
 )

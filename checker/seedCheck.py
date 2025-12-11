@@ -74,9 +74,21 @@ def run_seedcheck(seed: int, x: int, z: int, largebiomes: bool = False):
         return None, elapsed, True
 
     # Parse area
+    x_min = 0
+    x_max = 0
+    z_min = 0
+    z_max = 0
     match = re.search(r"Area:\s+(\d+)\s+square blocks", stdout)
+    x_match = re.search(r"X-range: \[+(\d+), (\d+)\]", stdout)
+    z_match = re.search(r"Z-range: \[+(\d+), (\d+)\]", stdout)
+    if x_match:
+        x_min = x_match.group(1)
+        x_max = x_match.group(2)
+    if z_match:
+        z_min = z_match.group(1)
+        z_max = z_match.group(2)
     if match:
-        return int(match.group(1)), elapsed, False
+        return x_min, x_max, z_min, z_max, int(match.group(1)), elapsed, False
     else:
         logging.warning("Could not parse area from output:\n" + stdout)
         return None, elapsed, False
@@ -87,11 +99,16 @@ def process_row(row):
     row_id, seed, x, z = row["id"], row["seed"], row["x"], row["z"]
     logging.info(f"Processing row {row_id} (seed={seed}, x={x}, z={z})")
     lb = TABLE_NAME == "large_biomes"
-    area, elapsed, manual_needed = run_seedcheck(seed, x, z, lb)
+    x_min, x_max, z_min, z_max, area, elapsed, manual_needed = run_seedcheck(seed, x, z, lb)
 
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
     try:
+        cur.execute(
+            f"SELECT id FROM {TABLE_NAME} where seed = {seed} and x_min <= {x_min} and x_max >= {x_max} and z_min <= {z_min} and z_max >= {z_max}"
+        )
+        if cur.rowcount > 0:
+            conflicting_id = cur.fetchone()[0]
         cur.execute(
             f"SELECT claimed_size FROM {TABLE_NAME} where id = {row_id}"
         )
@@ -103,7 +120,7 @@ def process_row(row):
             )
             conn.commit()
             logging.info(f"Invalidated row {row_id} due to gap between claimed and calculated. Claimed: {claimed_size} calced: {area}")
-        if manual_needed:
+        if manual_needed or conflicting_id:
             cur.execute(
                 f"UPDATE {TABLE_NAME} SET manual_check_needed = 1 WHERE id = %s",
                 (row_id,),
@@ -117,6 +134,9 @@ def process_row(row):
                 (area, row_id),
             )
             conn.commit()
+            cur.execute(
+                f"UPDATE {TABLE_NAME} SET min_x = {x_min}, min_z = {z_min}, max_x = {x_max}, max_z = {z_max} WHERE id = {row_id}"
+            )
             logging.info(f"Updated row {row_id} with area={area}")
 
         else:
