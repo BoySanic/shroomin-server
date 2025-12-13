@@ -91,7 +91,7 @@ def run_seedcheck(seed: int, x: int, z: int, largebiomes: bool = False):
         return x_min, x_max, z_min, z_max, int(match.group(1)), elapsed, False
     else:
         logging.warning("Could not parse area from output:\n" + stdout)
-        return None, elapsed, False
+        return None, None, None, None, None, elapsed, False
 
 # Worker Function
 def process_row(row):
