@@ -205,14 +205,14 @@ async def profile(payload: UserEntry, request: Request):
     }
 
 @app.get("/sb_leaderboard")
-async def small_biomes_lb(count: int, page: int, request: Request):
+async def small_biomes_lb(count: int = 50, page: int = 1, request: Request):
     return await get_lb(count, page, True)
 
 @app.get("/lb_leaderboard")
-async def large_biomes_lb(count: int, page: int, request: Request):
+async def large_biomes_lb(count: int = 50, page: int = 1, request: Request):
     return await get_lb(count, page, False)
 
-async def get_lb(count: int = 50, page: int = 1, small_biomes: bool = False):
+async def get_lb(count: int, page: int = 1, small_biomes: bool = True):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     table_name = "small_biomes" if small_biomes else "large_biomes"
