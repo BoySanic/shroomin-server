@@ -220,6 +220,9 @@ async def get_lb(count: int, page: int = 1, small_biomes: bool = False):
     if limit > 1000 :
         limit = 1000
 
+    if page < 1 :
+        page = 1
+
     cur.execute(
         f"""
             SELECT u.discord_id, x, z, seed, claimed_size, calculated_size, mush.id from {table_name} mush
@@ -232,7 +235,7 @@ async def get_lb(count: int, page: int = 1, small_biomes: bool = False):
         """)
     message = {}
     results = cur.fetchall()
-    place = 1*((page-1*limit))
+    place = 1*(((page-1)*limit))
     for result in results:
         message[place] = {
             "discord_id": result[0],
