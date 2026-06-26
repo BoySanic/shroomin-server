@@ -179,5 +179,5 @@ services:
       - "${CONTAINER_DATA_ROOT}/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
-      - db-network
+      - traefik-network
     restart: always
