@@ -228,11 +228,11 @@ async def get_lb(count: int, page: int = 1, small_biomes: bool = False):
             GROUP BY u.discord_id, seed, claimed_size, calculated_size, mush.id
             ORDER BY mush.calculated_size DESC, mush.claimed_size DESC
             LIMIT {limit}
-            OFFSET {(page-1)*1000}
+            OFFSET {(page-1)*limit}
         """)
     message = {}
     results = cur.fetchall()
-    place = 1*(page-1)
+    place = 1*((page-1*limit))
     for result in results:
         message[place] = {
             "discord_id": result[0],
