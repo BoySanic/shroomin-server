@@ -205,11 +205,11 @@ async def profile(payload: UserEntry, request: Request):
     }
 
 @app.get("/sb_leaderboard")
-async def small_biomes_lb(count: int = 50, page: int = 1, request: Request):
+async def small_biomes_lb(request: Request, count: int = 50, page: int = 1):
     return await get_lb(count, page, True)
 
 @app.get("/lb_leaderboard")
-async def large_biomes_lb(count: int = 50, page: int = 1, request: Request):
+async def large_biomes_lb(request: Request, count: int = 50, page: int = 1):
     return await get_lb(count, page, False)
 
 async def get_lb(count: int, page: int = 1, small_biomes: bool = True):

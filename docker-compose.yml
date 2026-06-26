@@ -1,6 +1,8 @@
 networks:
   traefik-network:
     external: true
+  db-network:
+    external: false
 
 volumes:
   pgdata: {}
@@ -14,7 +16,7 @@ services:
     restart: always
     shm_size: 128mb
     networks:
-      - traefik-network
+      - db-network
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
@@ -33,7 +35,7 @@ services:
     environment:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
-      PGPASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
       SHROOM_SB_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
       SHROOM_LB_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
       WEBSERVER_PORT: ${WEBSERVER_PORT}
@@ -42,6 +44,7 @@ services:
       - ./shroom-webserver/server.py:/server/server.py
     networks:
       - traefik-network
+      - db-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,7 +76,9 @@ services:
     environment:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
-      PGPASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - db-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,11 +90,11 @@ services:
     environment:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
-      PGPASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
       SHROOM_TABLE_NAME: ${POSTGRES_SB_TABLE_NAME}
       SHROOM_CHECKER_THREADS: 6
     networks:
-      - traefik-network
+      - db-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,11 +105,11 @@ services:
     environment:
       SHROOM_DB_NAME: ${POSTGRES_DB_NAME}
       SHROOM_DB_USER: ${POSTGRES_DB_USER}
-      PGPASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
       SHROOM_TABLE_NAME: ${POSTGRES_LB_TABLE_NAME}
       SHROOM_CHECKER_THREADS: 6
     networks:
-      - traefik-network
+      - db-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -116,6 +121,7 @@ services:
       - grafana-storage:/var/lib/grafana
     networks:
       - traefik-network
+      - db-network
     restart: unless-stopped
     ports:
     - 3000:3000
@@ -173,5 +179,5 @@ services:
       - "${CONTAINER_DATA_ROOT}/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
-      - traefik-network
+      - db-network
     restart: always
