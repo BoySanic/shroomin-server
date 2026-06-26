@@ -205,14 +205,14 @@ async def profile(payload: UserEntry, request: Request):
     }
 
 @app.get("/sb_leaderboard")
-async def small_biomes_lb(count: int, request: Request):
-    return await get_lb(count, True)
+async def small_biomes_lb(count: int, page: int, request: Request):
+    return await get_lb(count, page, True)
 
 @app.get("/lb_leaderboard")
-async def large_biomes_lb(count: int, request: Request):
-    return await get_lb(count, False)
+async def large_biomes_lb(count: int, page: int, request: Request):
+    return await get_lb(count, page, False)
 
-async def get_lb(count: int, small_biomes: bool):
+async def get_lb(count: int, page: int = 1, small_biomes: bool):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     table_name = "small_biomes" if small_biomes else "large_biomes"
@@ -228,10 +228,11 @@ async def get_lb(count: int, small_biomes: bool):
             GROUP BY u.discord_id, seed, claimed_size, calculated_size, mush.id
             ORDER BY mush.calculated_size DESC, mush.claimed_size DESC
             LIMIT {limit}
+            OFFSET {(page-1)*1000}
         """)
     message = {}
     results = cur.fetchall()
-    place = 1
+    place = 1*(page-1)
     for result in results:
         message[place] = {
             "discord_id": result[0],

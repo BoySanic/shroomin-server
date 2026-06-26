@@ -16,7 +16,7 @@ services:
     networks:
       - traefik-network
     environment:
-      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -142,12 +142,12 @@ services:
     - "traefik.http.middlewares.compresstraefik.compress=true"
     # Specify which Docker network Traefik should use for routing
     - "traefik.docker.network=traefik-network"
-
   shroom-bot:
     build: ./shroom-bot
     environment:
       SHROOM_BOT_DISCORD_TOKEN: ${SHROOM_BOT_DISCORD_TOKEN}
       SHROOM_BOT_API_KEY: ${SHROOM_BOT_API_KEY}
+    restart: always
   traefik:
     image: "traefik:v3.6.4"
     container_name: "shroom_traefik"
@@ -174,3 +174,4 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - traefik-network
+    restart: always
