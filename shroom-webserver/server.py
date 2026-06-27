@@ -215,7 +215,7 @@ async def get_result(request: Request, id: int, lb: bool = False):
 
     cur.execute(
         f"""
-        SELECT seed, x, z, claimed_size, calculated_size, manual_check_needed, created_at, u.discord_id
+        SELECT seed, x, z, claimed_size, calculated_size, manual_check_needed, res.created_at, u.discord_id
         FROM {table_name} res
         join users u on u.id = res.user_id
         WHERE id = {id}
