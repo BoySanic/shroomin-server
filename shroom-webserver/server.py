@@ -238,6 +238,40 @@ async def get_result(request: Request, id: int, lb: bool = False):
             status_code=404,
             detail=f"Result not found with id {id}"
         )
+
+@ap.get("/user")
+async def get_user(request: Request, id: int, discord_id: int = 0):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    if (id != 0 and discord_id != 0):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot both fetch by id and discord id"
+        )
+    where_clause = f"id = {id}" if discord_id == 0 else f"discord_id = {discord_id}"
+
+    cur.execute(
+        f"""
+        SELECT id, discord_id, created_at
+        FROM users
+        WHERE {where_clause}
+        LIMIT 1
+        """
+    )
+    results = cur.fetchone()
+    if len(results) > 0:
+        return {
+            "id": results[0],
+            "discord_id": results[1],
+            "created_at": results[2]
+        }
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Could not find user where {where_clause}"
+        )
+
 @app.get("/sb_leaderboard")
 async def small_biomes_lb(request: Request, count: int = 50, page: int = 1):
     return await get_lb(count, page, True)
