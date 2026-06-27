@@ -204,6 +204,38 @@ async def profile(payload: UserEntry, request: Request):
         "lb_count": large_biomes_count
     }
 
+@app.get("/result")
+async def get_result(request: Request, id: int, lb: bool = False):
+    table_name = lb ? f"{SHROOM_LB_TABLE_NAME" : f"{SHROOM_SB_TABLE_NAME}"
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+
+    cur.execute(
+        f"""
+        SELECT seed, x, z, claimed_size, calculated_size, manual_check_needed, created_at, u.discord_id
+        FROM {table_name} res
+        join users u on u.id = res.user_id
+        WHERE id = {id}
+        """
+    )
+    results = cur.fetchone()
+    if len(results) > 0:
+        return {
+            "seed":                 results[0],
+            "x":                    results[1],
+            "z":                    results[2],
+            "claimed_size":         results[3],
+            "calculated_size":      results[4],
+            "manual_check_needed":  results[5],
+            "submitted_at":         results[6],
+            "discord_id":           results[7]
+        }
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Result not found with id {id}"
+        )
 @app.get("/sb_leaderboard")
 async def small_biomes_lb(request: Request, count: int = 50, page: int = 1):
     return await get_lb(count, page, True)
