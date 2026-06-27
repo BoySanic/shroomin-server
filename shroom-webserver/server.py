@@ -239,7 +239,7 @@ async def get_result(request: Request, id: int, lb: bool = False):
             detail=f"Result not found with id {id}"
         )
 
-@ap.get("/user")
+@app.get("/user")
 async def get_user(request: Request, id: int, discord_id: int = 0):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
