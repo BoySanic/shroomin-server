@@ -114,7 +114,7 @@ def process_row(row):
             f"SELECT claimed_size FROM {TABLE_NAME} where id = {row_id}"
         )
         claimed_size = cur.fetchone()[0]
-        if claimed_size/area > 1.05 or claimed_size/area > 0.95:
+        if claimed_size/area > 1.1 or claimed_size/area < 0.9:
             # Invalidate if the gap is too wide
             cur.execute(
                 f"UPDATE {TABLE_NAME} SET manual_check_needed = 1 WHERE id = {row_id}"
