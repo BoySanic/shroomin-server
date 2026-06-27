@@ -206,7 +206,7 @@ async def profile(payload: UserEntry, request: Request):
 
 @app.get("/result")
 async def get_result(request: Request, id: int, lb: bool = False):
-    table_name = lb ? f"{SHROOM_LB_TABLE_NAME" : f"{SHROOM_SB_TABLE_NAME}"
+    table_name = f"{SHROOM_LB_TABLE_NAME}" if lb else f"{SHROOM_SB_TABLE_NAME}"
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
