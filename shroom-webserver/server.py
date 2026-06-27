@@ -235,7 +235,7 @@ async def get_lb(count: int, page: int = 1, small_biomes: bool = True):
         """)
     message = {}
     results = cur.fetchall()
-    place = 1*(((page-1)*limit))
+    place = 1+(page-1*limit)
     for result in results:
         message[place] = {
             "discord_id": result[0],
