@@ -240,11 +240,11 @@ async def get_result(request: Request, id: int, lb: bool = False):
         )
 
 @app.get("/user")
-async def get_user(request: Request, id: int, discord_id: int = 0):
+async def get_user(request: Request, id: int = 0, discord_id: int = 0):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
-    if (id != 0 and discord_id != 0):
+    if ((id != 0 and discord_id != 0 )or (id == 0 and discord_id == 0)):
         raise HTTPException(
             status_code=400,
             detail=f"Cannot both fetch by id and discord id"
