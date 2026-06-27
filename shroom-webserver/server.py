@@ -13,6 +13,8 @@ import secrets, string, base64, json, hashlib
 import logging
 
 pwd = os.getenv("SHROOM_KEY_PW")
+SHROOM_SB_TABLE_NAME = os.getenv("SHROOM_SB_TABLE_NAME")
+SHROOM_LB_TABLE_NAME = os.getenv("SHROOM_LB_TABLE_NAME")
 
 def import_key():
     with open("shroom.priv", "rb") as f:
